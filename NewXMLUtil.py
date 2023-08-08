@@ -1,5 +1,5 @@
 """
-this file is rewrited based on XMLUtil.py
+this file is rewritten based on XMLUtil.py
 
 """
 
@@ -7,10 +7,11 @@ this file is rewrited based on XMLUtil.py
 from lxml import etree
 from Settings.FESettings import *
 
-def SetBeBoard(self, Id, boardType, eventType = "VR"):
-    self.Id = str(Id)
-    self.boardType = boardType
-    self.eventType = eventType
+#def SetBeBoard(self, Id, boardType, eventType = "VR"):
+#    self.Id = str(Id)
+#    self.boardType = boardType
+#    self.eventType = eventType
+
 PH2ACF_BASE_DIR = "GUI" #I make it up
 # hard coding section
 Id = str(0)

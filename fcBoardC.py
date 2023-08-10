@@ -1,39 +1,117 @@
-class board():
-    def __init__(self,test):
-        self.test = test #test for all module connected to same board should be the same?
+#see Q
+#
 
-    def adding_module(self,serialNo,Id,enable,Files,moduleType,test):
+
+from Settings.HWSettings import *
+from Settings.RegisterSettings import *
+from Settings.MonitoringSettings import *
+from Settings.FESettings import *
+from Settings.GlobalSettings import *
+
+#creat chip first then add to module
+
+class Module():
+    def __init__(self,serialNo,SerialId,enable,Files,moduleType,test):
         self.serialNo = serialNo
-        self.SerialId = Id
+        self.SerialId = SerialId
         self.enable = enable
         self.Files = Files
         self.moduleType = moduleType
         self.test = test
-
-    def adding_chips(self,Id,Lane,Configfile):
-        self.chipId = Id
-        self.chipLane = Lane
-        self.Configfile = Configfile
-
-    def get_module_info(self):
-        return self.serialNo, self.SerialId, self.Files, self.moduleType
-
-
-    def getting_registerSetting():
-        return 
-
-    def getting_HWSetting():
-        return #dict
-
-    def getting_monitorSetting():
-        return #dict
+        self.chipList = []
     
-    def getting_globalSetting():
-        return #dict
+    def adding_chips(self,Id,Lane,Configfile):
+        self.chipList.append([Id,Lane,Configfile])
+    
+    def get_Chip_info(self):
+        return self.chipList
+    
+    def getting_globalSetting(self):
+        if self.moduleType == "RD53A":
+            GO_Dict = globalSettings_DictA[self.test]
+        else:
+            GO_Dict = globalSettings_DictB[self.test]
+        return GO_Dict
+            
 
-class OpticleGroup():
-    def adding_FMC(FMCid,id):
-        pass  
+        
 
-board1 = board()
-board.
+
+class board():
+    def __init__(self,boardID,boardType,eventType):
+        self.moduleList = []
+        self.boardID = boardID
+        self.boardType = boardType
+        self.eventType = eventType
+        
+
+    def add_connection(self,address_table,connectionID,uri):
+        self.address_table = address_table
+        self.connectionID = connectionID
+        self.uri = uri
+
+
+    def adding_module(self,NewModule):
+        self.moduleList.append(NewModule)
+
+    def get_module(self,index):
+        return self.moduleList[index]
+
+    #to get proper setting, we need to know Ph2_ACF version, module type(RD53)
+    def getting_registerSetting():
+        return RegisterSettings
+
+
+    #Q:do I need to consider the situation like each single chip have a unique test? or assuming all of the chip that connecting to a same board share the same test
+    """
+    def getting_HWSetting(self):
+        if self.moduleType == "RD53A":
+            HWDict = HWSettings_DictA[self.test]
+        else:
+            HWDict = HWSettings_DictB[self.test]
+        
+        return HWDict
+
+    def getting_monitorSetting(self):
+        if self.moduleType == "RD53A":
+            monitor_Dict = MonitoringListA
+        else:
+            monitor_Dict = MonitoringListB
+        
+        return monitor_Dict
+
+    def getting_FEsetting(self):
+        if self.moduleType == "RD53A":
+            FE_Dict = FESettings_DictA[self.test]
+        else:
+            FE_Dict = FESettings_DictB[self.test]
+        
+        return FE_Dict
+    
+    """
+    
+
+if __name__ == "__main__":
+    #loading the data board1
+    #first board
+    module1 = Module("RH0001","1","1","files?","RD53A","IVCurve")
+    module1.adding_chips("Id","Lane","Configfile")
+    module2 = Module("RH0002","0","0","files?","RD53A","IVCurve")
+    module2.adding_chips("Id1","Lane1","Configfile")
+    board1 = board("0","RD53","VR") #in the order of board id, boardType, EventType
+    board1.adding_module(module1)
+
+    #second board
+    module3 = Module("RH0003","0","0","files?","RD53A","IVCurve")
+    module3.adding_chips("Id1","Lane1","Configfile")
+
+    board2 = board("1","RD53","VR") #in the order of board id, boardType, EventType
+    board2.adding_module(module3)
+
+    #retrieving data
+    module2_retrieve = board2.get_module(0)
+    print(module2_retrieve.serialNo)
+    
+    
+
+

@@ -6,9 +6,11 @@ from fcBoardC import *
 class XMLGenerator():
     """Use to create XML File"""
 
+    
     def __init__(self, root_node: str):
         self.root = etree.Element(root_node)
     
+    #extra method from collin
     def buildingRoot(self, root_node): #used in usingXMLGen.py
         spcialRoot = etree.Element(root_node)
         return spcialRoot
@@ -68,6 +70,10 @@ class XMLGenerator():
                 sub_element.text = str(value)
 
     """Creating XML file"""
+    #ea
+    def display_xml_custom(self,tree):
+        print(etree.tostring(tree, pretty_print=True).decode())
+
     def display_xml(self):
         print(etree.tostring(self.root, pretty_print=True).decode())
 

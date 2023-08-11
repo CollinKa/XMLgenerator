@@ -9,7 +9,7 @@ class XMLGenerator:
 
     def __init__(self, root_node: str):
         self.root = etree.Element(root_node)
-        self.initialize_dictionary = {}
+        self.initial_dictionary = {}
         
 
     def add_element(self, parent, element):
@@ -24,15 +24,34 @@ class XMLGenerator:
     def display_dict(self, dictionary=None):
         if dictionary is None:
             dictionary = self.initial_dictionary
-
+        elif not isinstance(dictionary, dict):
+            raise TypeError("Input not a dictionary")
         formatted_dict = json.dumps(dictionary, indent=4)
         print(formatted_dict)
     
     
-    def dict_to_xml(self, data):
-        def build_xml_element(element, data):
-            if isinstance(data, dict):
-                for key, value in data.items():
+    def dict_to_xml(self, dictionary=None, root_name=None):
+        if dictionary is None:
+            dictionary = self.initial_dictionary
+        elif not isinstance(dictionary, dict):
+            raise TypeError("You must input a dictionary.")
+            
+        if root_name is None:
+            if len(dictionary) == 0:
+                raise ValueError("The dictionary is empty!")
+            elif len(dictionary) != 1:
+                raise ValueError("The dictionary has multiple highest-level keys.\
+                                \nPlease provide a new root name.")
+            else:
+                root_name = next(iter(dictionary.keys()))
+        elif not isinstance(root_name, str):
+            raise TypeError("Root name has to be a string.")
+        
+        outer_dict = {root_name: dictionary}
+
+        def build_xml_element(element, dictionary):
+            if isinstance(dictionary, dict):
+                for key, value in dictionary.items():
                     if key == "@attributes":
                         element.attrib.update(value)
                     elif key == "#text":
@@ -44,12 +63,11 @@ class XMLGenerator:
                     else:
                         sub_element = etree.SubElement(element, key)
                         build_xml_element(sub_element, value)
-            elif isinstance(data, str):
-                element.text = data
+            elif isinstance(dictionary, str):
+                element.text = dictionary
 
-        root_tag = next(iter(data.keys()))
-        root_element = etree.Element(root_tag)
-        build_xml_element(root_element, data[root_tag])
+        root_element = etree.Element(root_name)
+        build_xml_element(root_element, outer_dict[root_name])
 
         return root_element
 
@@ -67,7 +85,7 @@ class XMLGenerator:
         elif isinstance(xml_element, etree._Element):
             root_element = xml_element
         else:
-            raise ValueError("Input must be a string containing XML data or an etree._Element object.")
+            raise TypeError("Input must be a string containing XML data or an etree._Element object.")
 
         tree = etree.ElementTree(root_element)
 
@@ -79,7 +97,7 @@ class XMLGenerator:
         else:
             full_filepath = os.path.join(filepath, filename)
 
-        tree.write(full_filepath, encoding="utf-8", xml_declaration=True, pretty_print=True)
+        tree.write(full_filepath, encoding="utf-8", xml_declaration=False, pretty_print=True)
     
     
     def xml_to_dict(self, xml_data):
@@ -88,7 +106,7 @@ class XMLGenerator:
         elif isinstance(xml_data, etree._Element):
             root_element = xml_data
         else:
-            raise ValueError("Input must be a string containing XML data or an etree._Element object.")
+            raise TypeError("Input must be a string containing XML data or an etree._Element object.")
 
         def convert_element(element):
             result = {}
@@ -116,6 +134,8 @@ class XMLGenerator:
                     result[child.tag] = sub_element
 
             return result
+        
+        self.initial_dictionary = {root_element.tag: convert_element(root_element)}
 
         return {root_element.tag: convert_element(root_element)}
 
@@ -144,7 +164,10 @@ class XMLGenerator:
     
     
     ###for debugging purposes###
-    def create_txt_file_from_dict(self, dictionary, filename=None, filepath=None, indent=0):
+    def create_txt_file_from_dict(self, dictionary=None, filename=None, filepath=None):
+        if dictionary is None:
+            dictionary = self.initial_dictionary
+        indent = 0
         def write_dict_to_file(file, data, indent):
             for key, value in data.items():
                 line = f"{indent * ' '}{key}:"
@@ -179,6 +202,7 @@ class XMLGenerator:
 if __name__ == "__main__":
     xmlgen = XMLGenerator("root")
     
+    
     #import CMSIT.xml
     cmsfile = xmlgen.read_xml_file("CMSIT.xml")
     
@@ -186,7 +210,7 @@ if __name__ == "__main__":
     cmsfile_dict = xmlgen.xml_to_dict(cmsfile)
     
     #now recreate xml file from the dictionary
-    recreatedXML = xmlgen.dict_to_xml(cmsfile_dict)
+    recreatedXML = xmlgen.dict_to_xml(cmsfile_dict,"kjg")
     
     #save(create) the file
     xmlgen.create_xmlFile(recreatedXML)

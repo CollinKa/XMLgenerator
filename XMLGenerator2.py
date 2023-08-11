@@ -3,11 +3,15 @@ import json
 from lxml import etree
 from fcBoardC import *
 
-class XMLGenerator:
+class XMLGenerator():
     """Use to create XML File"""
 
     def __init__(self, root_node: str):
         self.root = etree.Element(root_node)
+    
+    def buildingRoot(self, root_node): #used in usingXMLGen.py
+        spcialRoot = etree.Element(root_node)
+        return spcialRoot
 
     """Editting XML Trees"""
     def create_element(self, tag, attrib=None, nsmap=None, **_extra):

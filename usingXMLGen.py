@@ -12,9 +12,9 @@ from XMLGenerator import *
 #loading the data board1
     #first board
 module1 = Module("RH0001","1","1","files?","RD53A","IVCurve")
-module1.adding_chips("Id","Lane","Configfile")
+module1.adding_chips("Id1","Lane1","Configfile1")
 module2 = Module("RH0002","0","0","files?","RD53A","IVCurve")
-module2.adding_chips("Id1","Lane1","Configfile")
+module2.adding_chips("Id2","Lane2","Configfile2")
 board1 = board("0","RD53","VR") #in the order of board id, boardType, EventType
 board1.adding_module(module1)
 board1.adding_module(module2)
@@ -25,7 +25,8 @@ print(board1.address_table)
 
 #second board
 module3 = Module("RH0003","0","0","files?","RD53A","IVCurve")
-module3.adding_chips("Id1","Lane1","Configfile")
+module3.adding_chips("Id3","Lane3","Configfile3")
+module3.adding_chips("Id4","Lane4","Configfile4")
 board2 = board("1","RD53","VR") #in the order of board id, boardType, EventType
 board2.adding_module(module3)
 board2.add_connection("connectionID2","id2","uri2")
@@ -60,7 +61,7 @@ for i in range(len(boardList)):
     #adding connection subelement
     
     connectionElement = Xtree.add_node(beboardElement,"connection",{"address_table" : boardList[i].address_table, "id" : boardList[i].boardID, "uri" : boardList[i].uri})
-    
+    connectionElement = Xtree.add_node(beboardElement, "OpticalGroup",boardList[i].OpticalGroupDict)
     #optical group?related to FMC
     #Warning!! so far I assume hybrid is the sub element of connection, I should fix it into Optical group later
     
@@ -91,7 +92,7 @@ Xtree.addHWSetting(top,boardList[0].boardType,test)
 
 #adding MonitorSetting
 #Xtree.addMonitorSetting(top,"RD53A",enable,sleeptime)
-Xtree.addMonitorSetting(top,"RD53A","1","1000")
+Xtree.addMonitorSetting(top,boardList[0].boardType,"1","1000")
 
 
 

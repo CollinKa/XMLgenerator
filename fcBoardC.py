@@ -37,6 +37,7 @@ class Module():
 class board():
     def __init__(self,boardID,boardType,eventType):
         self.moduleList = []
+        self.OpticalGroupDict = {'Id':"0",'FMCId':"0"}
         self.boardID = boardID
         self.boardType = boardType
         self.eventType = eventType

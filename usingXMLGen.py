@@ -2,7 +2,10 @@
 #do fakesetup.sh first
 #ask optical group, same test for all chip on a same module?
 
-from XMLGenerator2 import *
+#warning test and board type need to be same
+
+#from XMLGenerator2 import * #old file
+from XMLGenerator import *
 
 
 #load data for board & module class copy from fcBoardc.py
@@ -27,11 +30,16 @@ board2 = board("1","RD53","VR") #in the order of board id, boardType, EventType
 board2.adding_module(module3)
 board2.add_connection("connectionID2","id2","uri2")
 
+#extra parameter for Moniter setting
+enable = "1"
+sleeptime = "1000"
+
 
 
 
 #list of fcboard 
 boardList = [board1,board2]
+test = "PixelAlive" # note: currently, modules attached to same FC7 can only do one test due to the xml tree struture.
 
 
 
@@ -66,7 +74,26 @@ for i in range(len(boardList)):
         type = module.moduleType
         for chip in module.chipList:
             ChipElement = Xtree.add_node(hybridElement,type, {"Id" : chip[0], "Lane" : chip[1] , "configfile" : chip[2]})
+            #adding FESetting/ one setting per chip
+            Xtree.addFESetting(ChipElement,type,test)
+    
+        #adding global setting/  one setting per module
+        Xtree.addGOSettings(hybridElement,type,test) #Q: ask matt does muduole type is RD53 or CROC
+
+    #adding Register setting/ one setting per board
+    Xtree.addRegisterSetting(beboardElement)
+
+#the following two have some weird bugs    
+#adding HWSetting
+#warning: I realize HWSetting is subelement of HWDescprion. So this required the test modules in both board needs to be same type RD53A or B
+#and modules attached to two board need to do the same test
+Xtree.addHWSetting(top,boardList[0].boardType,test)
+
+#adding MonitorSetting
+#Xtree.addMonitorSetting(top,"RD53A",enable,sleeptime)
+Xtree.addMonitorSetting(top,"RD53A","1","1000")
 
 
-Xtree.display_xml_custom(top)
+
+Xtree.display_xml(top)
 

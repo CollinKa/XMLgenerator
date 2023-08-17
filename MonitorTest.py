@@ -1,6 +1,11 @@
 from lxml import etree
+from Settings.MonitoringSettings import *
 
 # Define the MonitoringListA dictionary
+#choose RD53A/B
+
+
+"""
 MonitoringListA = {
     'VIN_ana_ShuLDO': "0",
     'VOUT_ana_ShuLDO': "0",
@@ -11,23 +16,30 @@ MonitoringListA = {
     'TEMPSENS_1': "0",
     'TEMPSENS_4': "1",
 }
+"""
 
 # Create the root element
-root = etree.Element("MonitoringSettings")
+root = etree.Element("HWDes")
+def addMonitorSetting(parent,boardtype,enable,sleeptime):
+    # Create the Monitoring element with attributes
+    monitoring_title = etree.SubElement(parent, "MonitoringSettings")
+    monitoring_elem = etree.SubElement(monitoring_title, "Monitoring", enable="1", type="RD53A")
 
-# Create the Monitoring element with attributes
-monitoring_elem = etree.SubElement(root, "Monitoring", enable="1", type="RD53A")
+    # Create MonitoringSleepTime element
+    monitoring_sleep_time_elem = etree.SubElement(monitoring_elem, "MonitoringSleepTime")
+    monitoring_sleep_time_elem.text = sleeptime
 
-# Create MonitoringSleepTime element
-monitoring_sleep_time_elem = etree.SubElement(monitoring_elem, "MonitoringSleepTime")
-monitoring_sleep_time_elem.text = "10000"
+    if boardtype == "RD53A":
+        MonDict = MonitoringListB
+    else:
+        MonDict = MonitoringListB
+    # Create MonitoringElement elements based on the MonitoringListA dictionary
+    for register, enable in MonDict.items():
+        monitoring_element_elem = etree.SubElement(
+            monitoring_elem, "MonitoringElement", device="RD53", enable=enable, register=register
+        )
 
-# Create MonitoringElement elements based on the MonitoringListA dictionary
-for register, enable in MonitoringListA.items():
-    monitoring_element_elem = etree.SubElement(
-        monitoring_elem, "MonitoringElement", device="RD53", enable=enable, register=register
-    )
-
+addMonitorSetting(root,"RD53A","1","1000")
 # Create an XML tree from the root element
 tree = etree.ElementTree(root)
 

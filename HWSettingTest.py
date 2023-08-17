@@ -16,22 +16,25 @@ settings = {
 #test
 boardType ="RD53A"
 test = "PixelAlive"
+def addHWS(boardType,test,parent):
+    setting_title = etree.SubElement(parent, "Setting")
+    if boardType == "RD53A":
+        HWDict = HWSettings_DictA[test]
+    else:
+        HWDict = HWSettings_DictB[test]
 
-if boardType == "RD53A":
-    HWDict = HWSettings_DictA[test]
-else:
-    HWDict = HWSettings_DictB[test]
+    #HWDict = HWSettingsB_PixelAlive
+
+    # Iterate through the dictionary and create XML elements
+    for name, value in HWDict.items():
+        setting_elem = etree.SubElement(root, "Setting", name=name)
+        setting_elem.text = str(value)
 
 
 # Create the root element
 root = etree.Element("T")
 
-#HWDict = HWSettingsB_PixelAlive
-
-# Iterate through the dictionary and create XML elements
-for name, value in HWDict.items():
-    setting_elem = etree.SubElement(root, "Setting", name=name)
-    setting_elem.text = str(value)
+addHWS(boardType,test,root)
 
 # Create an XML tree from the root element
 tree = etree.ElementTree(root)

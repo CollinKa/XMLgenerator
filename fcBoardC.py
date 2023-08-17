@@ -1,6 +1,3 @@
-#see Q
-#
-
 
 from Settings.HWSettings import *
 from Settings.RegisterSettings import *

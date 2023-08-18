@@ -140,19 +140,19 @@ if __name__ == '__main__':
     for i in range(RD53Alanes):
         instance = con.createbranch('RD53A', d.RD53A_attrib, con.RD53info(0, 0, "A", i))
         RD53A.append(instance)
-        instance2 = con.createbranch('Settings', d.RD53A_Settings_attrib, con.RD53settingsinfo(0,0,"A",i))
-        RD53A_set.append(instance2)
+        # instance2 = con.createbranch('Settings', d.RD53A_Settings_attrib, con.RD53settingsinfo(0,0,"A",i))
+        # RD53A_set.append(instance2)
 
-    registernum = 10
-    register_list = []
+    # registernum = 10
+    # register_list = []
 
-    for i in range(registernum):
-        register = con.createregister(getattr(d, f"board0_Register{i}"), con.registervalue(0, i))
-        register_list.append(register)
+    # for i in range(registernum):
+    #     register = con.createregister(getattr(d, f"board0_Register{i}"), con.registervalue(0, i))
+    #     register_list.append(register)
 
 
-    for i in range(RD53Alanes):
-        con.addDict(RD53A[i], RD53A_set[i])
+    # for i in range(RD53Alanes):
+    #     con.addDict(RD53A[i], RD53A_set[i])
 
     con.addDict(hybrid0, RD53files)
     
@@ -163,8 +163,8 @@ if __name__ == '__main__':
     con.addDict(beboard0, connection0)
     con.addDict(beboard0, optical0)
 
-    for i in range(registernum):
-        con.addDict(beboard0,register_list[i])
+    # for i in range(registernum):
+    #     con.addDict(beboard0,register_list[i])
         
     con.addDict(root, beboard0)
     

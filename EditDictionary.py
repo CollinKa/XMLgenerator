@@ -78,14 +78,14 @@ class EditDictionary:
 
         return False
 
-    def addDict(self, base_dictionary: dict, dict_to_add: dict, path: list):
-        if not path:
-            raise ValueError("Path must have at least one element.")
-
-        if len(path) == 1:
-            root_key = path[0]
-            base_dictionary[root_key] = {**dict_to_add}
-            return
+    def addDict(self, base_dictionary: dict, dict_to_add: dict, path=None):
+        if not base_dictionary:
+            raise ValueError("Base dictionary is empty.") 
+        if path is None:
+            if len(base_dictionary) > 1:
+                raise ValueError("Base dictionary has more than one keys, please specify the path.")
+            first_key = next(iter(base_dictionary))
+            path = [first_key]
 
         current_dict = base_dictionary
         for idx, path_element in enumerate(path):
@@ -169,7 +169,7 @@ if __name__ == "__main__":
     dictc = editor.createDict(list5, list6)
 
     #print(dicta)
-    #print(dictb)
+    print(dictb)
     #print(dictc)
 
     #create "root key", nesting each dictionary under a single key 
@@ -177,12 +177,15 @@ if __name__ == "__main__":
     editor.addDict(dictA, dicta, ["sub"])
 
     dictB = editor.createRoot("sub")
-    editor.addDict(dictB, dictb, ["sub2"])
+    editor.addDict(dictB, dictb, ["sub"])
 
     dictC = editor.createRoot("sub")
-    editor.addDict(dictC, dictc, ["sub2"])
+    editor.addDict(dictC, dictc, ["sub"])
+    
+    editor.visualizeDict(dictB)
+    
 
-    # Create the root dictionary
+    #Create the root dictionary
     root_dict = {
         'Level1_Key1': {
             'Level2_Key1': {
@@ -256,3 +259,4 @@ if __name__ == "__main__":
     print()
     #visualize the resulting dictionary
     editor.visualizeDict(root_dict)
+    print(root_dict)

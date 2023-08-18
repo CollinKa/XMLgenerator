@@ -7,10 +7,7 @@ from lxml import etree
 class XMLGenerator:
     """Use to create XML File"""
 
-    def __init__(self, root_node: str):
-        self.root = etree.Element(root_node)
-        self.initial_dictionary = {}
-        
+
 
     def add_element(self, parent, element):
         parent.append(element)
@@ -52,9 +49,9 @@ class XMLGenerator:
         def build_xml_element(element, dictionary):
             if isinstance(dictionary, dict):
                 for key, value in dictionary.items():
-                    if key == "@attributes":
+                    if key == "attributesClaimer":
                         element.attrib.update(value)
-                    elif key == "#text":
+                    elif key == "textClaimer":
                         element.text = value  # Set text content directly
                     elif isinstance(value, list):
                         for item in value:
@@ -113,10 +110,10 @@ class XMLGenerator:
 
             attributes = dict(element.attrib)
             if attributes:
-                result["@attributes"] = attributes
+                result["attributesClaimer"] = attributes
 
             if element.text and element.text.strip():
-                result["#text"] = element.text.strip()
+                result["textClaimer"] = element.text.strip()
 
             for child in element:
                 if child.tag is etree.Comment:  # Skip comment elements
@@ -200,32 +197,32 @@ class XMLGenerator:
 
 
 if __name__ == "__main__":
-    xmlgen = XMLGenerator("HwDescription")
+    xmlgen = XMLGenerator()
     
     
-    # #import CMSIT.xml
-    # cmsfile = xmlgen.read_xml_file("CMSIT_RD53ATest.xml")
+    #import CMSIT.xml
+    cmsfile = xmlgen.read_xml_file("CMSIT_RD53ATest.xml")
     
-    # #convert xml to nested dictionary
-    # cmsfile_dict = xmlgen.xml_to_dict(cmsfile)
+    #convert xml to nested dictionary
+    cmsfile_dict = xmlgen.xml_to_dict(cmsfile)
     
-    # #now recreate xml file from the dictionary
-    # recreatedXML = xmlgen.dict_to_xml(cmsfile_dict, 354)
+    #now recreate xml file from the dictionary
+    recreatedXML = xmlgen.dict_to_xml(cmsfile_dict)
     
-    # #save(create) the file
-    # xmlgen.create_xmlFile(recreatedXML)
+    #save(create) the file
+    xmlgen.create_xmlFile(recreatedXML)
     
-    # ##########  uncomment below to check...  #############
-    # # 1. the dictionary by creating a txt file or print()
-    # # 2. print recreated xml
-    # ######################################################
+    ##########  uncomment below to check...  #############
+    # 1. the dictionary by creating a txt file or print()
+    # 2. print recreated xml
+    ######################################################
     
-    # # #create txt file of the dictionary
-    # xmlgen.create_txt_file_from_dict(cmsfile_dict)
+    # #create txt file of the dictionary
+    xmlgen.create_txt_file_from_dict(cmsfile_dict)
     
-    # #show the dictionary on the prompt
-    # xmlgen.display_dict(cmsfile_dict)
+    #show the dictionary on the prompt
+    xmlgen.display_dict(cmsfile_dict)
     
-    # #show recreated xml strings on the prompt
-    # xmlgen.display_xml(recreatedXML)
+    #show recreated xml strings on the prompt
+    #xmlgen.display_xml(recreatedXML)
     

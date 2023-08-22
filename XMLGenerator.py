@@ -10,9 +10,6 @@ from Settings.RegisterSettings import *
 from Settings.FESettings import *
 from Settings.GlobalSettings import *
 
-
-#I haven't put comments yet
-
 class XMLGenerator:
     """Use to create XML File"""
 
@@ -20,7 +17,7 @@ class XMLGenerator:
         self.root = etree.Element(root_node)
         self.initial_dictionary = {}
     
-    #extra method from collin
+
     def buildingRoot(self, root_node): #used in usingXMLGen.py
         spcialRoot = etree.Element(root_node)
         return spcialRoot

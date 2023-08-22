@@ -1,11 +1,8 @@
-
 from Settings.HWSettings import *
 from Settings.RegisterSettings import *
 from Settings.MonitoringSettings import *
 from Settings.FESettings import *
 from Settings.GlobalSettings import *
-
-#creat chip first then add to module
 
 class Module():
     def __init__(self,serialNo,SerialId,enable,Files,moduleType,test):
@@ -58,35 +55,6 @@ class board():
     #to get proper setting, we need to know Ph2_ACF version, module type(RD53)
     def getting_registerSetting():
         return RegisterSettings
-
-
-    #Q:do I need to consider the situation like each single chip have a unique test? or assuming all of the chip that connecting to a same board share the same test
-    """
-    def getting_HWSetting(self):
-        if self.moduleType == "RD53A":
-            HWDict = HWSettings_DictA[self.test]
-        else:
-            HWDict = HWSettings_DictB[self.test]
-        
-        return HWDict
-
-    def getting_monitorSetting(self):
-        if self.moduleType == "RD53A":
-            monitor_Dict = MonitoringListA
-        else:
-            monitor_Dict = MonitoringListB
-        
-        return monitor_Dict
-
-    def getting_FEsetting(self):
-        if self.moduleType == "RD53A":
-            FE_Dict = FESettings_DictA[self.test]
-        else:
-            FE_Dict = FESettings_DictB[self.test]
-        
-        return FE_Dict
-    
-    """
     
 
 if __name__ == "__main__":

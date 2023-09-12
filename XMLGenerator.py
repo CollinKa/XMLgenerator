@@ -13,10 +13,66 @@ from Settings.GlobalSettings import *
 class XMLGenerator:
     """Use to create XML File"""
 
+
+    #original init method. it is outdated
+    """
     def __init__(self, root_node: str):
         self.root = etree.Element(root_node)
         self.initial_dictionary = {}
+    """
     
+    """
+    def __init__(self, boardClass):
+        self.board = boardClass
+        self.loadingXML(self.board)
+    """
+    
+        
+    #after loading xml, using david's method create_xmlFile to create xml in the given path
+    #disable the second board by default
+    def loadingXML(self,board1,board2=None): 
+        test = board.GetTest() #adding this method to board class(TBD)
+        xml = self.buildingRoot("HWDescrption")
+        boardList = []
+        boardList.append(board1)
+        if board2 != None:
+            boardList.append(board2)
+        for i in range(len(boardList)):
+            #adding beboard sumelement
+            beboardElement = self.add_node(xml,"BeBoard",{"Id" : boardList[i].boardID, "boardType" : boardList[i].boardType, "eventType" :boardList[i].boardType})
+            #adding connection subelement
+            connectionElement = self.add_node(beboardElement,"connection",{"address_table" : boardList[i].address_table, "id" : boardList[i].boardID, "uri" : boardList[i].uri})
+            connectionElement = self.add_node(beboardElement, "OpticalGroup",boardList[i].OpticalGroupDict)
+            
+            #loop over modules that are conneting to a same fc board
+            for module in boardList[i].moduleList:
+                hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.SerialId, "Name" : module.serialNo})
+                self.add_node(hybridElement, "RD53_Files" ,{"file" : module.Files})
+                #loop over chips
+                type = module.moduleType
+                for chip in module.chipList:
+                    ChipElement = self.add_node(hybridElement,type, {"Id" : chip[0], "Lane" : chip[1] , "configfile" : chip[2]})
+                    #adding FESetting/ one setting per chip
+                    self.addFESetting(ChipElement,type,test)
+            
+                #adding global setting/  one setting per module
+                self.addGOSettings(hybridElement,type,test) #Q: ask matt does muduole type is RD53 or CROC
+
+            #adding Register setting/ one setting per board
+            self.addRegisterSetting(beboardElement)
+
+        #adding HWSetting
+        self.addHWSetting(xml,boardList[0].boardType,test)
+
+        #adding MonitorSetting
+        self.addMonitorSetting(xml,boardList[0].moduleList[0].moduleType,"1","1000")
+
+        return xml
+
+
+    def loadingData(self, boardClass):
+       pass
+        
 
     def buildingRoot(self, root_node): #used in usingXMLGen.py
         spcialRoot = etree.Element(root_node)

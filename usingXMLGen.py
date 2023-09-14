@@ -1,8 +1,11 @@
 #do fakesetup.sh first
 
+
 from XMLGenerator import *
 
 
+
+"""
 #load data for board & module class copy from fcBoardc.py
 #loading the data board1
     #first board
@@ -34,15 +37,31 @@ sleeptime = "1000"
 #list of fcboard 
 boardList = [board1,board2]
 test = "PixelAlive" # note: currently, modules attached to same FC7 can only do one test due to the xml tree struture.
+"""
+
+#append the objetct when we get the front end input
+
+
+board1 = board("0","IVCurve")
+#board1.adding_module(module1)
+module1=Module("ZH0003","0","1",board1)
+module1.setTest(board1.GetTest())
+#cL=module1.chipList # working
+
+#print(cL)
 
 
 
+
+
+
+
+#This section is in xmlgenerator
+"""
 #-----------------------------
 #create the tree
 Xtree = XMLGenerator("HWDescrption") 
 top=Xtree.buildingRoot("HWDescrption") 
-
-
 #create tree with mutiple boards
 for i in range(len(boardList)):
     #adding beboard sumelement
@@ -74,7 +93,10 @@ Xtree.addHWSetting(top,boardList[0].boardType,test)
 #adding MonitorSetting
 Xtree.addMonitorSetting(top,boardList[0].boardType,"1","1000")
 
+"""
+
+
 
 #display the tree
-Xtree.display_xml(top)
+#Xtree.display_xml(top)
 

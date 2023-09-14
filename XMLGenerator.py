@@ -1,5 +1,7 @@
 #David's latest XML generator 
 
+#to to adding extra section of if isOpticalLink:
+
 import os
 import json
 from lxml import etree
@@ -30,11 +32,24 @@ class XMLGenerator:
         
     #after loading xml, using david's method create_xmlFile to create xml in the given path
     #disable the second board by default
-    def loadingXML(self,board1,board2=None): 
+    def loadingXML(self,board1,board2=None,isOpticalLink=False): 
         test = board.GetTest() #adding this method to board class(TBD)
         xml = self.buildingRoot("HWDescrption")
         boardList = []
         boardList.append(board1)
+
+
+        #adding this section to setting folder as a mapping?
+        StatusStr = 'Status'
+        if "v4-11" in Ph2_ACF_VERSION:
+            StatusStr = 'enable'
+        if "v4-13" in Ph2_ACF_VERSION:
+            StatusStr = 'enable'
+        if "v4-14" in Ph2_ACF_VERSION:
+            StatusStr = 'enable'
+
+
+
         if board2 != None:
             boardList.append(board2)
         for i in range(len(boardList)):
@@ -46,14 +61,21 @@ class XMLGenerator:
             
             #loop over modules that are conneting to a same fc board
             for module in boardList[i].moduleList:
-                hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.SerialId, "Name" : module.serialNo})
+                hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.SerialId, "Name" : module.serialNo, StatusStr:module.status})
+                if isOpticalLink:
+                    #FIXME: Add additional stuff for optical link here.
+                    Node_OpFiles = self.add_node(connectionElement, 'lqGBT_Files',{'path':"${PWD}/"})
+                    Node_lqGBT = self.add_node(connectionElement, 'lqGBT',{'Id':'0','version':'1','configfile':'CMSIT_LqGBT-v1.txt','ChipAddress':'0x70','RxDataRate':'1280','RxHSLPolarity':'0','TxDataRate':'160','TxHSLPolarity':'1'})
+                    Node_lqGBTsettings = self.add_node(Node_lqGBT, 'Settings')
                 self.add_node(hybridElement, "RD53_Files" ,{"file" : module.Files})
                 #loop over chips
                 type = module.moduleType
                 for chip in module.chipList:
                     ChipElement = self.add_node(hybridElement,type, {"Id" : chip[0], "Lane" : chip[1] , "configfile" : chip[2]})
                     #adding FESetting/ one setting per chip
-                    self.addFESetting(ChipElement,type,test)
+                    VDDA = chip[3]
+                    VDDD = chip[4]
+                    self.addFESetting(ChipElement,type,test,VDDA,VDDD)
             
                 #adding global setting/  one setting per module
                 self.addGOSettings(hybridElement,type,test) #Q: ask matt does muduole type is RD53 or CROC
@@ -265,6 +287,7 @@ class XMLGenerator:
             write_dict_to_file(file, dictionary, indent)
     
     #adding Setting parameters
+    
 
     #monitor setting
     def addMonitorSetting(self,parent,boardtype,enable,sleeptime):
@@ -315,11 +338,22 @@ class XMLGenerator:
         for path, value in RegisterSettings.items():
             self.create_subelements_Register(parent, path, value)
         
-    def addFESetting(self,parent,boardType,test):
+    def addFESetting(self,parent,boardType,test,VDDAtrim=None,VDDDtrim=None):
         if boardType == "RD53A":
             FEDict = FESettings_DictA[test]
         else:
             FEDict = FESettings_DictB[test]
+        
+        if VDDAtrim == None:
+            pass
+        else:
+            FEDict['VOLTAGE_TRIM_ANA'] = VDDAtrim
+        
+        if VDDDtrim == None:
+            pass
+        else:
+            FEDict['VOLTAGE_TRIM_DIG'] = VDDDtrim
+
 
         self.add_node(parent,"Settings",FEDict)
 

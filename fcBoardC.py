@@ -5,52 +5,74 @@ from Settings.FESettings import *
 from Settings.GlobalSettings import *
 from Settings.settings import * #get the ModuleLaneMap dict for chip id,lane number
 
+#note
+"""
+need to change the following
+RD53 A/B chip type 
+TFpx module type
+"""
+
+
 class Module():
-    def __init__(self,serialNo,moduleId,enable,Files,moduleType,test):
+    def __init__(self,serialNo,moduleId,status="1"):
         self.serialNo = serialNo
-        self.moduleId = moduleId
-        self.enable = enable
-        self.Files = Files
-        self.moduleType = moduleType #I need to add a method get module type automatically.
-        self.chipType = self.getChipType(serialNo)
-        self.test = test
+        self.moduleId = moduleId #input for “FMC port:” in GUI
+        self.status = status # control by a click mark in gui start window.
+        self.Files = "./" # following the xml file we have now
+        self.moduleType = None #I need to add a method get module type automatically. #module type is RD53a?? or tfpx
+        self.chipType = None
+        self.test = None
         self.chipList = []
         self.txtFileLocatoin = "/home/RD53A/workspace/collin/Ph2_ACF_GUI_DICT_Submodule/Ph2_ACF_GUI/Ph2_ACF/settings"
-    
-    # I dont adding_chips is useful, because the chip is a module is fixed
+        self.VDDA = None
+        self.VDDD = None
+        self.setModuleType()
+        self.SetChipType()
+        self.adding_chips()
+
+
+    # I dont think adding_chips manually is useful, because the chip is a module is fixed
     #def adding_chips(self,Id,Lane,Configfile):
-    def adding_chips(self):
-        IdLaneDict=ModuleLaneMap[self.chipType]
+    def adding_chips(self,VDDA,VDDD):
+        IdLaneDict=ModuleLaneMap[self.moduleType]
         numberOfChips = len(IdLaneDict)
         for ChipID in range(numberOfChips):
             ChipIdStr = str(ChipID)
             Lane = IdLaneDict[ChipIdStr]
             ConfigfileName = os.environ.get(
                     "PH2ACF_BASE_DIR"
-                )+ f"/settings/RD53Files/CMSIT_RD53_{self.chipType}_{self.moduleId}_{ChipID},txt"   #follow the guide in GenerateXMLConfig() in guituil.py
-            self.chipList.append([ChipIdStr,Lane,ConfigfileName])
+                )+ f"/settings/RD53Files/CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipID}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
+            self.chipList.append([ChipIdStr,Lane,ConfigfileName,VDDA,VDDD])
             
             #create the txt file for each chip(leave it blank now)
-            #I dont understand what does IN file used for SetupRD53ConfigfromFile() 
-            try:
-                os.system("cp {0}/CMSIT_{1} {2}").format(self.txtFileLocatoin,self.moduleType,ConfigfileName)
-            except OSError:
-                print("Can not copy the XML files {0} to {1}").format(self.txtFileLocatoin,ConfigfileName)
+            #I dont understand what does IN file used for SetupRD53ConfigfromFile()
+            # disable cp command beofre using it in GUI 
+            #try:
+            #    os.system("cp {0}/CMSIT_{1} {2}").format(self.txtFileLocatoin,self.chipType,ConfigfileName)
+            #except OSError:
+            #    print("Can not copy the XML files {0} to {1}").format(self.txtFileLocatoin,ConfigfileName)
 
-
-
-
-    
-    
-
-
-
-    def getChipType(self,SerialId):
-        if 'ZH' in SerialId:
-            self.chipType = "TFPX Quad"
-        if 'SCC' in SerialId:
-            self.chipType = "SingleSCC"
+    def setModuleType(self):
+        if 'ZH' in self.serialNo:
+            self.moduleType = "TFPX Quad"
+        if 'SCC' in self.serialNo:
+            self.moduleType = "SingleSCC"
+        if 'RH' in self.serialNo:
+            self.moduleType = "CROC 1x2"
         # there should be more
+    
+    def getModuleType(self):
+        return self.moduleType
+
+    def SetChipType(self):
+        if 'CROC' in self.moduleType:
+            self.chipType = "RD53A"
+        else:
+            self.chipType = "RD53B"
+
+    def getChipType(self):
+        return self.chipType
+        
     
     def get_Chip_info(self):
         return self.chipList
@@ -62,7 +84,8 @@ class Module():
             GO_Dict = globalSettings_DictB[self.test]
         return GO_Dict
             
-
+    def setTest(self,testName):
+        self.test = testName
         
 
 
@@ -89,6 +112,7 @@ class board():
 
 
     def adding_module(self,NewModule):
+        NewModule.test =self.test
         self.moduleList.append(NewModule)
 
     def get_module(self,index):
@@ -102,6 +126,9 @@ class board():
 if __name__ == "__main__":
     #loading the data board1
     #first board
+
+    #outdated code need to be removed
+    """
     module1 = Module("RH0001","1","1","files?","RD53A","IVCurve")
     module1.adding_chips("Id","Lane","Configfile")
     module2 = Module("RH0002","0","0","files?","RD53A","IVCurve")
@@ -119,6 +146,8 @@ if __name__ == "__main__":
     #retrieving data
     module2_retrieve = board2.get_module(0)
     print(module2_retrieve.serialNo)
+    """
+    
     
     
 

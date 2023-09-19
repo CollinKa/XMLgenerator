@@ -1,9 +1,9 @@
-from Settings.HWSettings import *
-from Settings.RegisterSettings import *
-from Settings.MonitoringSettings import *
-from Settings.FESettings import *
-from Settings.GlobalSettings import *
-from Settings.settings import * #get the ModuleLaneMap dict for chip id,lane number
+from XMLgenerator.Settings.HWSettings import *
+from XMLgenerator.Settings.RegisterSettings import *
+from XMLgenerator.Settings.MonitoringSettings import *
+from XMLgenerator.Settings.FESettings import *
+from XMLgenerator.Settings.GlobalSettings import *
+from XMLgenerator.Settings.settings import * #get the ModuleLaneMap dict for chip id,lane number
 
 #note
 """
@@ -14,7 +14,7 @@ TFpx module type
 
 
 class Module():
-    def __init__(self,serialNo,moduleId,status="1"):
+    def __init__(self,serialNo,moduleId,chipInfo,status="1"):
         self.serialNo = serialNo
         self.moduleId = moduleId #input for “FMC port:” in GUI
         self.status = status # control by a click mark in gui start window.
@@ -22,27 +22,39 @@ class Module():
         self.moduleType = None #I need to add a method get module type automatically. #module type is RD53a?? or tfpx
         self.chipType = None
         self.test = None
+        self.chipInfo = chipInfo
         self.chipList = []
-        self.txtFileLocatoin = "/home/RD53A/workspace/collin/Ph2_ACF_GUI_DICT_Submodule/Ph2_ACF_GUI/Ph2_ACF/settings"
-        self.VDDA = None
-        self.VDDD = None
+        #self.txtFileLocatoin = "/home/RD53A/workspace/collin/Ph2_ACF_GUI_DICT_Submodule/Ph2_ACF_GUI/Ph2_ACF/settings"
+        #self.VDDA = None
+        #self.VDDD = None
         self.setModuleType()
         self.SetChipType()
         self.adding_chips()
+        
 
 
     # I dont think adding_chips manually is useful, because the chip is a module is fixed
     #def adding_chips(self,Id,Lane,Configfile):
-    def adding_chips(self,VDDA,VDDD):
+    def adding_chips(self):
         IdLaneDict=ModuleLaneMap[self.moduleType]
         numberOfChips = len(IdLaneDict)
-        for ChipID in range(numberOfChips):
-            ChipIdStr = str(ChipID)
-            Lane = IdLaneDict[ChipIdStr]
+        #for ChipID in range(numberOfChips): #wrong script
+        print("self.chipInfo:" + str(self.chipInfo))
+        for chip in self.chipInfo:    
+            #chip ID start from 0, so it is ok to use for chipInfor
+            #one of significant error that I can think of is manaully define module type doesn't match automaticaly setup chip Type 
+            #chipInfo=self.chipInfo #it complains chipInfo is none
+            #chip=chipInfo[ChipID]
+            if not chip.getStatus():
+                continue
+            VDDA=chip.getVDDA()
+            VDDD=chip.getVDDD()
+            ChipId = chip.getID()
+            Lane = chip.getLane()
             ConfigfileName = os.environ.get(
                     "PH2ACF_BASE_DIR"
-                )+ f"/settings/RD53Files/CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipID}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
-            self.chipList.append([ChipIdStr,Lane,ConfigfileName,VDDA,VDDD])
+                )+ f"/settings/RD53Files/CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipId}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
+            self.chipList.append([ChipId,Lane,ConfigfileName,VDDA,VDDD])
             
             #create the txt file for each chip(leave it blank now)
             #I dont understand what does IN file used for SetupRD53ConfigfromFile()
@@ -87,12 +99,33 @@ class Module():
     def setTest(self,testName):
         self.test = testName
         
+class OGModule():
+    def __init__(self,OGID,FMCID):
+        self.Id=OGID
+        self.FMCId=FMCID
+        self.isOpticalLink = False
+        #self.HyBridList = []
+        self.moduleList = []
+        self.test = None
 
+    def SetOpticalGrp(self, Id, FMCId, isOptLink=False):
+        self.Id=Id
+        self.FMCId=FMCId
+        self.isOpticalLink = isOptLink
+
+    def adding_module(self,NewModule,chipInfo):
+        NewModule.test =self.test
+        NewModule.chipInfo = chipInfo
+        self.moduleList.append(NewModule)
+
+    #def AddHyBrid(self, HybridModule):
+    #    self.HyBridList.append(HybridModule)
 
 class board():
     def __init__(self,boardID,testName):
-        self.moduleList = []
-        self.OpticalGroupDict = {'Id':"0",'FMCId':"0"}
+        #self.moduleList = []
+        self.OGList = {}
+        #self.OpticalGroupDict = {'Id':"0",'FMCId':"0"}
         self.boardID = boardID
         self.boardType = "RD53"
         self.eventType = "VR"
@@ -102,6 +135,12 @@ class board():
         self.uri = "chtcp-2.0://localhost:10203?target={0}:50001".format(self.ip_address)
         self.address_table = "file://${PH2ACF_BASE_DIR}/settings/address_tables/CMSIT_address_table.xml"
 
+    def addOG(self,OGID="0",FMCID="0"):
+        OG0=OGModule(OGID,FMCID)
+        OG0.test = self.test
+        #dict = {OGID:OG0}
+        self.OGList[OGID] = OG0
+
     def GetTest(self): 
         return self.test
 
@@ -110,17 +149,22 @@ class board():
         self.connectionID = connectionID
         self.uri = uri
 
-
-    def adding_module(self,NewModule):
+    """
+    def adding_module(self,NewModule,chipInfo):
         NewModule.test =self.test
+        NewModule.chipInfo = chipInfo
         self.moduleList.append(NewModule)
+    """
+    
+    #useless code
+    #def get_module(self,index):
+    #    return self.moduleList[index]
 
-    def get_module(self,index):
-        return self.moduleList[index]
 
+    #useless code
     #to get proper setting, we need to know Ph2_ACF version, module type(RD53)
-    def getting_registerSetting():
-        return RegisterSettings
+    #def getting_registerSetting():
+    #    return RegisterSettings
     
 
 if __name__ == "__main__":

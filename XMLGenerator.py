@@ -5,12 +5,12 @@
 import os
 import json
 from lxml import etree
-from fcBoardC import *
-from Settings.MonitoringSettings import *
-from Settings.HWSettings import *
-from Settings.RegisterSettings import *
-from Settings.FESettings import *
-from Settings.GlobalSettings import *
+from XMLgenerator.fcBoardC import *
+from XMLgenerator.Settings.MonitoringSettings import *
+from XMLgenerator.Settings.HWSettings import *
+from XMLgenerator.Settings.RegisterSettings import *
+from XMLgenerator.Settings.FESettings import *
+from XMLgenerator.Settings.GlobalSettings import *
 
 class XMLGenerator:
     """Use to create XML File"""
@@ -33,7 +33,7 @@ class XMLGenerator:
     #after loading xml, using david's method create_xmlFile to create xml in the given path
     #disable the second board by default
     def loadingXML(self,board1,board2=None,isOpticalLink=False): 
-        test = board.GetTest() #adding this method to board class(TBD)
+        test = board1.GetTest() #adding this method to board class(TBD)
         xml = self.buildingRoot("HWDescrption")
         boardList = []
         boardList.append(board1)
@@ -57,37 +57,48 @@ class XMLGenerator:
             beboardElement = self.add_node(xml,"BeBoard",{"Id" : boardList[i].boardID, "boardType" : boardList[i].boardType, "eventType" :boardList[i].boardType})
             #adding connection subelement
             connectionElement = self.add_node(beboardElement,"connection",{"address_table" : boardList[i].address_table, "id" : boardList[i].boardID, "uri" : boardList[i].uri})
-            connectionElement = self.add_node(beboardElement, "OpticalGroup",boardList[i].OpticalGroupDict)
+            #connectionElement = self.add_node(beboardElement, "OpticalGroup",boardList[i].OpticalGroupDict)
             
-            #loop over modules that are conneting to a same fc board
-            for module in boardList[i].moduleList:
-                hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.SerialId, "Name" : module.serialNo, StatusStr:module.status})
-                if isOpticalLink:
-                    #FIXME: Add additional stuff for optical link here.
-                    Node_OpFiles = self.add_node(connectionElement, 'lqGBT_Files',{'path':"${PWD}/"})
-                    Node_lqGBT = self.add_node(connectionElement, 'lqGBT',{'Id':'0','version':'1','configfile':'CMSIT_LqGBT-v1.txt','ChipAddress':'0x70','RxDataRate':'1280','RxHSLPolarity':'0','TxDataRate':'160','TxHSLPolarity':'1'})
-                    Node_lqGBTsettings = self.add_node(Node_lqGBT, 'Settings')
-                self.add_node(hybridElement, "RD53_Files" ,{"file" : module.Files})
-                #loop over chips
-                type = module.moduleType
-                for chip in module.chipList:
-                    ChipElement = self.add_node(hybridElement,type, {"Id" : chip[0], "Lane" : chip[1] , "configfile" : chip[2]})
-                    #adding FESetting/ one setting per chip
-                    VDDA = chip[3]
-                    VDDD = chip[4]
-                    self.addFESetting(ChipElement,type,test,VDDA,VDDD)
             
-                #adding global setting/  one setting per module
-                self.addGOSettings(hybridElement,type,test) #Q: ask matt does muduole type is RD53 or CROC
+            specificBoard = boardList[i]
+            for OG in specificBoard.OGList.values():
+                #OGList is a dictionary where keys are OGIG and value is the corresponding OGmodule Class
+                connectionElement = self.add_node(beboardElement, "OpticalGroup",{"FMCId":OG.FMCId ,"Id":OG.Id}) #it complains OG is string. it seems I am printing a name of dictionary
+                #hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.moduleId, "Name" : module.serialNo, StatusStr:module.status})
+
+
+                #loop over modules that are conneting to a same fc board
+                for module in OG.moduleList:
+                    hybridElement = self.add_node(connectionElement,"Hybrid",{"Id" : module.moduleId, "Name" : module.serialNo, StatusStr:module.status})
+                    if isOpticalLink:
+                        #FIXME: Add additional stuff for optical link here.
+                        Node_OpFiles = self.add_node(connectionElement, 'lqGBT_Files',{'path':"${PWD}/"})
+                        Node_lqGBT = self.add_node(connectionElement, 'lqGBT',{'Id':'0','version':'1','configfile':'CMSIT_LqGBT-v1.txt','ChipAddress':'0x70','RxDataRate':'1280','RxHSLPolarity':'0','TxDataRate':'160','TxHSLPolarity':'1'})
+                        Node_lqGBTsettings = self.add_node(Node_lqGBT, 'Settings')
+                    self.add_node(hybridElement, "RD53_Files" ,{"file" : module.Files})
+                    #loop over chips
+                    type = module.moduleType
+                    chiptype = module.chipType
+                    for chip in module.chipList:
+                        ChipElement = self.add_node(hybridElement,chiptype, {"Id" : chip[0], "Lane" : chip[1] , "configfile" : chip[2]})
+                        #adding FESetting/ one setting per chip
+                        VDDA = chip[3]
+                        VDDD = chip[4]
+                        print("adding FEsetttings debug")
+                        self.addFESetting(ChipElement,type,test,VDDA,VDDD)
+                
+                    #adding global setting/  one setting per module
+                    self.addGOSettings(hybridElement,chiptype,test) #Q: ask matt does muduole type is RD53 or CROC
 
             #adding Register setting/ one setting per board
             self.addRegisterSetting(beboardElement)
 
         #adding HWSetting
-        self.addHWSetting(xml,boardList[0].boardType,test)
+        specificBoard.OGList.values()
+        self.addHWSetting(xml,chiptype,test)
 
         #adding MonitorSetting
-        self.addMonitorSetting(xml,boardList[0].moduleList[0].moduleType,"1","1000")
+        self.addMonitorSetting(xml,chiptype,"1","1000")
 
         return xml
 
@@ -184,7 +195,7 @@ class XMLGenerator:
             full_filepath = filename
         else:
             full_filepath = os.path.join(filepath, filename)
-
+        print("full_filepath:" + str(full_filepath))
         tree.write(full_filepath, encoding="utf-8", xml_declaration=False, pretty_print=True)
     
     
@@ -310,9 +321,9 @@ class XMLGenerator:
             etree.SubElement(monitoring_elem, "MonitoringElement", device="RD53", enable=enable, register=register)
     
     #HWSetting
-    def addInnerHWSetting(self,parent,boardtype,test):
+    def addInnerHWSetting(self,parent,chiptype,test):
         
-        if boardtype == "RD53A":
+        if chiptype == "RD53A":
             HWDict = HWSettings_DictA[test]
         else:
             HWDict = HWSettings_DictB[test]
@@ -357,8 +368,8 @@ class XMLGenerator:
 
         self.add_node(parent,"Settings",FEDict)
 
-    def addGOSettings(self,parent,boardType,test):
-        if boardType == "RD53A":
+    def addGOSettings(self,parent,chipType,test):
+        if chipType == "RD53A":
             GODict = globalSettings_DictA[test]
         else:
             GODict = globalSettings_DictB[test]

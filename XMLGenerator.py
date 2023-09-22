@@ -34,7 +34,7 @@ class XMLGenerator:
     #disable the second board by default
     def loadingXML(self,board1,board2=None,isOpticalLink=False): 
         test = board1.GetTest() #adding this method to board class(TBD)
-        xml = self.buildingRoot("HWDescrption")
+        xml = self.buildingRoot("HwDescription")
         boardList = []
         boardList.append(board1)
 
@@ -54,9 +54,9 @@ class XMLGenerator:
             boardList.append(board2)
         for i in range(len(boardList)):
             #adding beboard sumelement
-            beboardElement = self.add_node(xml,"BeBoard",{"Id" : boardList[i].boardID, "boardType" : boardList[i].boardType, "eventType" :boardList[i].boardType})
+            beboardElement = self.add_node(xml,"BeBoard",{"Id" : boardList[i].boardID, "boardType" : boardList[i].boardType, "eventType" :"VR"})
             #adding connection subelement
-            connectionElement = self.add_node(beboardElement,"connection",{"address_table" : boardList[i].address_table, "id" : boardList[i].boardID, "uri" : boardList[i].uri})
+            connectionElement = self.add_node(beboardElement,"connection",{"address_table" : boardList[i].address_table, "id" : "cmsinnertracker.crate0.slot0" , "uri" : boardList[i].uri})
             #connectionElement = self.add_node(beboardElement, "OpticalGroup",boardList[i].OpticalGroupDict)
             
             
@@ -94,7 +94,7 @@ class XMLGenerator:
             self.addRegisterSetting(beboardElement)
 
         #adding HWSetting
-        specificBoard.OGList.values()
+        #specificBoard.OGList.values()
         self.addHWSetting(xml,chiptype,test)
 
         #adding MonitorSetting
@@ -333,7 +333,7 @@ class XMLGenerator:
             setting_elem.text = str(value)
     
     def addHWSetting(self,parent,boardtype,test):
-        self.setting_title = etree.SubElement(parent, "Setting")
+        self.setting_title = etree.SubElement(parent, "Settings")
         self.addInnerHWSetting(self.setting_title,boardtype,test)
 
         

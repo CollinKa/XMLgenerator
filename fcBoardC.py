@@ -51,9 +51,11 @@ class Module():
             VDDD=chip.getVDDD()
             ChipId = chip.getID()
             Lane = chip.getLane()
-            ConfigfileName = os.environ.get(
-                    "PH2ACF_BASE_DIR"
-                )+ f"/settings/RD53Files/CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipId}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
+            #ConfigfileName = os.environ.get(
+            #        "PH2ACF_BASE_DIR"
+            #    )+ f"/settings/RD53Files/CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipId}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
+            #self.chipList.append([ChipId,Lane,ConfigfileName,VDDA,VDDD])
+            ConfigfileName = f"CMSIT_RD53_{self.serialNo}_{self.moduleId}_{ChipId}.txt"   #follow the guide in GenerateXMLConfig() in guituil.py
             self.chipList.append([ChipId,Lane,ConfigfileName,VDDA,VDDD])
             
             #create the txt file for each chip(leave it blank now)
@@ -78,9 +80,9 @@ class Module():
 
     def SetChipType(self):
         if 'CROC' in self.moduleType:
-            self.chipType = "RD53A"
-        else:
             self.chipType = "RD53B"
+        else:
+            self.chipType = "RD53A"
 
     def getChipType(self):
         return self.chipType
